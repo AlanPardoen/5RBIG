@@ -7,22 +7,15 @@ library(ggstance)
 library(ggalt)
 
 WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
-fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
-policeDeaths <- read.csv("PoliceDeaths.csv", header=TRUE, sep=",")
 
 WahsingtonPost$date <- ymd(WahsingtonPost$date)
 
-WahsingtonPost[,c(4:5,7:8,9:14)] <- lapply(WahsingtonPost[,c(4:5,7:8,9:14)], as.factor)
-levels(WahsingtonPost$gender)
-levels(WahsingtonPost$race) 
-WahsingtonPost$race <- factor(WahsingtonPost$race, levels(WahsingtonPost$race)[c(5,2,1,4,3,6)])
-levels(WahsingtonPost$flee)
-WahsingtonPost$flee <- factor(WahsingtonPost$flee, levels(WahsingtonPost$flee)[c(1,5,3,2,4)])
-levels(WahsingtonPost$manner_of_death)
-WahsingtonPost$manner_of_death <- factor(WahsingtonPost$manner_of_death, levels(WahsingtonPost$manner_of_death)[c(1,3,2)])
+raceinfo <- WahsingtonPost %>% group_by(race) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%  
+  mutate(race = factor(race, levels = rev(unique(race))))
 
-ggplot(data = WahsingtonPost, aes(y = race)) + 
-  geom_barh(aes(fill = ..count..)) +
+ggplot(data = raceinfo, aes(x = n,y = race)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "none") +
   scale_x_continuous(expand=c(0,0)) +
