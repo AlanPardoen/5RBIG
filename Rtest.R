@@ -6,9 +6,9 @@ library(ggplot2)
 library(ggstance)
 library(ggalt)
 
-WahsingtonPost <- read.csv("D:/utilisateur/Documents/5RBIG/WahsingtonPostDatabase.csv", header=TRUE, sep=",")
-fatalEncounters <- read.csv("D:/utilisateur/Documents/5RBIG/FatalEncounters.csv", header=TRUE, sep=",")
-policeDeaths <- read.csv("D:/utilisateur/Documents/5RBIG/PoliceDeaths.csv", header=TRUE, sep=",")
+WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
+fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
+policeDeaths <- read.csv("PoliceDeaths.csv", header=TRUE, sep=",")
 WahsingtonPost$date <- ymd(WahsingtonPost$date)
 
 WahsingtonPost[,c(4:5,7:8,9:14)] <- lapply(WahsingtonPost[,c(4:5,7:8,9:14)], as.factor)
