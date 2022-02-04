@@ -43,6 +43,22 @@ ggplot(data = WahsingtonPost, aes(x = date)) +
   scale_fill_gradient(low = "royalblue3", high = "navyblue") +
   labs(x = NULL, y = "Number of deaths")
 
+ggplot(data = WahsingtonPost, aes(x = month(date, label = TRUE))) + 
+  geom_bar(aes(fill = ..count..)) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_y_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "royalblue3", high = "navyblue") +
+  labs(x = NULL, y = "Number of deaths")
+
+ggplot(data = WahsingtonPost, aes(x = wday(date, label = TRUE))) + 
+  geom_bar(aes(fill = ..count..)) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_y_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "royalblue3", high = "navyblue") +
+  labs(x = NULL, y = "Number of deaths")
+
 stateinfo <- WahsingtonPost %>% group_by(state) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>% top_n(15) %>% 
   mutate(state = factor(state, levels = rev(unique(state))))
@@ -55,3 +71,26 @@ ggplot(stateinfo, aes(x = n, y = state)) +
   theme(axis.text.y=element_blank()) +
   theme(legend.position = "none") +
   scale_x_continuous(expand=c(0,0))
+
+
+armedinfo <- WahsingtonPost %>% group_by(armed) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(10) %>% 
+  mutate(armed = factor(armed, levels = rev(unique(armed))))
+
+ggplot(data = armedinfo, aes(x = n, y = armed)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "royalblue3", high = "navyblue") +
+  labs(y = NULL, x = "Number of deaths")
+
+ggplot(data = WahsingtonPost, aes(y = flee)) + 
+  geom_barh(aes(fill = ..count..)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "royalblue3", high = "navyblue") +
+  labs(y = NULL, x = "Number of deaths")
+
+
