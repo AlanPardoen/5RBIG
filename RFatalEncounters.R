@@ -8,6 +8,7 @@ library(ggalt)
 
 fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
 
+
 Raceinfo <- fatalEncounters %>% group_by(Race) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  
   mutate(Race = factor(Race, levels = rev(unique(Race))))
@@ -34,6 +35,17 @@ ggplot(data = Raceinfo, aes(x = n,y = Race.with.imputations)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
 
+Stateinfo <- fatalEncounters %>% group_by(State) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(State = factor(State, levels = rev(unique(State))))
+
+ggplot(data = Stateinfo, aes(x = n,y = State)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
 
 Countyinfo <- fatalEncounters %>% group_by(Location.of.death..county.) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>% top_n(15) %>% 
@@ -58,3 +70,32 @@ ggplot(data = Cityinfo, aes(x = n,y = Location.of.death..city.)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
+
+
+ageinfo <- fatalEncounters %>% group_by(Age) %>% summarise(n = n()) %>% 
+  arrange(Age) %>% top_n(25) %>% 
+  mutate(Age = factor(Age, levels = rev(unique(Age))))
+  
+ggplot(data = ageinfo, aes(x = n,y = Age)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+genreinfos <- fatalEncounters %>% group_by(Gender) %>% summarise(n = n()) %>% 
+  arrange(desc(Gender)) %>% top_n(25) %>% 
+  mutate(Gender = factor(Gender, levels = rev(unique(Gender))))
+
+ggplot(data = genreinfos, aes(x = n,y = Gender)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+
