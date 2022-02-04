@@ -9,7 +9,7 @@ library(ggalt)
 WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
 fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
 policeDeaths <- read.csv("PoliceDeaths.csv", header=TRUE, sep=",")
-taxPolicyCenter <- read.csv("TaxPolicyCenter.csv", header=TRUE, sep=",")
+
 WahsingtonPost$date <- ymd(WahsingtonPost$date)
 
 WahsingtonPost[,c(4:5,7:8,9:14)] <- lapply(WahsingtonPost[,c(4:5,7:8,9:14)], as.factor)
