@@ -39,7 +39,6 @@ names(TaxPolicyCenter) <- c('regionsandstates', 'total','intergovernmental','tot
 
 
 
-Pour commencer quelque données propre à chacunes des tables 
 
 Le nombre de civils tués durant un intervention présentant des troubles menteaux
 ```{r}
@@ -50,6 +49,19 @@ illessinfo <- WahsingtonPost %>% group_by(signs_of_mental_illness) %>% summarise
 ggplot(data = illessinfo, aes(x = n,y = signs_of_mental_illness)) + 
   geom_barh(stat="identity", aes(fill = n)) +
   ggtitle("WahsingtonPost illessinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = "Sign of illness", x = "Number of deaths")
+
+illessinfo <- fatalEncounters %>% group_by(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS) %>% summarise(n = n()) %>% 
+  arrange(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS) %>% 
+  mutate(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS = factor(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS, levels = rev(unique(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS))))
+
+ggplot(data = illessinfo, aes(x = n,y = Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("fatalEncounters illessinfo")+
   theme_minimal(base_size = 13) +
   theme(legend.position = "none") +
   scale_x_continuous(expand=c(0,0)) +
@@ -138,11 +150,11 @@ ggplot(data = raceinfo, aes(x = n,y = race)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
 
-Raceinfo <- fatalEncounters %>% group_by(Race) %>% summarise(n = n()) %>% 
+Raceinfo <- fatalEncounters %>% group_by(Race.with.imputations) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  
-  mutate(Race = factor(Race, levels = rev(unique(Race))))
+  mutate(Race.with.imputations = factor(Race.with.imputations, levels = rev(unique(Race.with.imputations))))
 
-ggplot(data = Raceinfo, aes(x = n,y = Race)) + 
+ggplot(data = Raceinfo, aes(x = n,y = Race.with.imputations)) + 
   geom_barh(stat="identity", aes(fill = n)) +
   ggtitle("FatalEncounters Raceinfo")+
   theme_minimal(base_size = 13) +
@@ -152,11 +164,118 @@ ggplot(data = Raceinfo, aes(x = n,y = Race)) +
   labs(y = NULL, x = "Number of deaths")
 ```
 
-On serait vite tenter de déterminé une forme de descrimination ici cependant, il faut préciser que nous ne connaisons pas la répartitition des popultations sur le teritoire americain. Il est probable que les European-Americain/white represente une population majeur sur le téritoire americain cependant, sans information suplementaire nous ne pouvons pas en déterminé plus. 
+On serait vite tenter de déterminé une forme de descrimination ici cependant, il faut préciser que nous ne connaisons pas la répartitition des popultations sur le teritoire americain. Il est probable que les European-Americain/white represente une population majeur sur le téritoire americain toutefois, sans information suplementaire nous ne pouvons pas en déterminé plus.
+
+comparont les age de chacun des database et essayon de trouver un tranche "cible"
 
 ```{r}
+ageinfo <- WahsingtonPost %>% group_by(age) %>% summarise(n = n()) %>% 
+  arrange(age) %>% top_n(25) %>% 
+  mutate(age = factor(age, levels = rev(unique(age))))
+
+ggplot(data = ageinfo, aes(x = n,y = age)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost Ageinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+ageinfo <- fatalEncounters %>% group_by(Age) %>% summarise(n = n()) %>% 
+  arrange(Age) %>% top_n(25) %>% 
+  mutate(Age = factor(Age, levels = rev(unique(Age))))
+  
+ggplot(data = ageinfo, aes(x = n,y = Age)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("fatalEncounters Ageinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+print("WahsingtonPost mean")
+result.mean <-  mean(WahsingtonPost$age,na.rm = TRUE)
+print(result.mean)
+
+print("fatalEncounters mean")
+fatalEncounters$Age <- as.numeric(as.character(fatalEncounters$Age))
+result.mean <-  mean(fatalEncounters$Age,na.rm = TRUE)
+print(result.mean)
+
+print("WahsingtonPost median")
+result.median <-  median(WahsingtonPost$age,na.rm = TRUE)
+print(result.median)
+
+print("fatalEncounters median")
+result.median <-  median(fatalEncounters$Age,na.rm = TRUE)
+print(result.median)
+
+estimate_mode <- function(x) {
+  d <- density(x,na.rm = TRUE)
+  d$x[which.max(d$y)]
+}
+
+print("WahsingtonPost Mode")
+result.mode <-  estimate_mode(WahsingtonPost$age)
+print(result.mode)
+
+
+print("fatalEncounters Mode")
+result.mode <-  estimate_mode(fatalEncounters$Age)
+print(result.mode)
+
+```
+
+```{r}
+WahsingtonPost$date <- ymd(WahsingtonPost$date)
+ggplot(data = WahsingtonPost, aes(x = date)) + 
+    ggtitle("WahsingtonPost dateinfo")+
+  geom_histogram(aes(fill = ..count..), bins = 25) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(x = NULL, y = "Number of deaths")
+
+
+```
+```{r}
+stateinfo <- WahsingtonPost %>% group_by(state) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(state = factor(state, levels = rev(unique(state))))
+
+ggplot(stateinfo, aes(x = n, y = state)) +
+  ggtitle("WahsingtonPost stateinfo")+
+  geom_barh(stat="identity", aes(fill = n)) +
+  geom_text(aes(x = 17, y = state, label=as.character(state)), color="white", size=4) +
+  labs(y = NULL, x = "Number of deaths") +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.y=element_blank()) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0))
+
+stateinfo <- fatalEncounters %>% group_by(State) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(State = factor(State, levels = rev(unique(State))))
+
+ggplot(stateinfo, aes(x = n, y = State)) +
+  ggtitle("FatalEncounters stateinfo")+
+  geom_barh(stat="identity", aes(fill = n)) +
+  geom_text(aes(x = 20, y = State, label=as.character(State)), color="white", size=4) +
+  labs(y = NULL, x = "Number of deaths") +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  theme_minimal(base_size = 15) +
+  theme(axis.text.y=element_blank()) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0))
+
 
 ```
 
 
+```{r}
+
+```
 

@@ -20,5 +20,5 @@ ggplot(data = TaxPolicyCenter, aes(x = police ,y = regionsandstates)) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "none") +
   scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
-  labs(y = "regionsandstates", x = "Number of deaths")
+  scale_fill_gradient(low = "dodgerblue", high = "green") +
+  labs(y = "regionsandstates", x = "Finance")
