@@ -5,6 +5,9 @@ library(dplyr)
 library(ggplot2)
 library(ggstance)
 library(ggalt)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
 
 WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
 
@@ -14,13 +17,11 @@ raceinfo <- WahsingtonPost %>% group_by(race) %>% summarise(n = n()) %>%
   arrange(desc(n)) %>%  
   mutate(race = factor(race, levels = rev(unique(race))))
 
-ggplot(data = raceinfo, aes(x = n,y = race)) + 
-  geom_barh(stat="identity", aes(fill = n)) +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none") +
-  scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
-  labs(y = NULL, x = "Number of deaths")
+ggplot(data = raceinfo, aes(x = n,y = race, fill=group)) + 
+  geom_bar(stat="identity", 1)
+ggplot(raceinfo, aes(x="", y=n, fill=race))+
+  geom_bar(width = 1, stat = "identity")+
+  coord_polar("y", start=0)
 
 ggplot(data = WahsingtonPost, aes(y = gender)) + 
   geom_barh(aes(fill = ..count..)) +
@@ -122,6 +123,11 @@ ggplot(data = illessinfo, aes(x = n,y = signs_of_mental_illness)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
+
+wash
+ggboxplot(WahsingtonPost, x = "flee", y = "age")
+
+ggboxplot(WahsingtonPost, x = "race", y = "age")
 
 
 

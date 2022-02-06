@@ -35,6 +35,7 @@ TaxPolicyCenter <- read_excel("TaxPolicyCenter.xls" )
 TaxPolicyCenter <- na.omit(TaxPolicyCenter)
 names(TaxPolicyCenter) <- c('regionsandstates', 'total','intergovernmental','total2', 'Elementaryandsecondaryeducation', 'Highereducation', 'Publicwelfare', 
                        'healthandhospital', 'highways', 'police', 'all other', 'ExhibitpersonalIncome[1](millions)')
+TaxPolicyCenter$police <- as.numeric(as.character(TaxPolicyCenter$police))
 ```
 
 
@@ -46,27 +47,20 @@ illessinfo <- WahsingtonPost %>% group_by(signs_of_mental_illness) %>% summarise
   arrange(signs_of_mental_illness) %>% 
   mutate(signs_of_mental_illness = factor(signs_of_mental_illness, levels = rev(unique(signs_of_mental_illness))))
 
-ggplot(data = illessinfo, aes(x = n,y = signs_of_mental_illness)) + 
-  geom_barh(stat="identity", aes(fill = n)) +
+ggplot(illessinfo, aes(x="", y=n, fill=signs_of_mental_illness))+
+  geom_bar(width = 1, stat = "identity")+
   ggtitle("WahsingtonPost illessinfo")+
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none") +
-  scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
-  labs(y = "Sign of illness", x = "Number of deaths")
+  coord_polar("y", start=0)
+
 
 illessinfo <- fatalEncounters %>% group_by(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS) %>% summarise(n = n()) %>% 
   arrange(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS) %>% 
   mutate(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS = factor(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS, levels = rev(unique(Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS))))
 
-ggplot(data = illessinfo, aes(x = n,y = Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS)) + 
-  geom_barh(stat="identity", aes(fill = n)) +
-  ggtitle("fatalEncounters illessinfo")+
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none") +
-  scale_x_continuous(expand=c(0,0)) +
-  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
-  labs(y = "Sign of illness", x = "Number of deaths")
+ggplot(illessinfo, aes(x="", y=n, fill=Foreknowledge.of.mental.illness..INTERNAL.USE..NOT.FOR.ANALYSIS))+
+  geom_bar(width = 1, stat = "identity")+
+  ggtitle("FatalEncounters illessinfo")+
+  coord_polar("y", start=0)
 ```
 
 comparont maintenant les deux bases concernant les civils a savoir fatalencouter et wahsingtonPost sur les niveaux de danger, les armes et les delits de fuites 
@@ -138,8 +132,7 @@ On peut constater que donné de washingtonpost sont remplis beaucoup plus assid�
 Comparont déja l'origine ethnique de chacune des personnes décédés
 ```{r}
 raceinfo <- WahsingtonPost %>% group_by(race) %>% summarise(n = n()) %>% 
-  arrange(desc(n)) %>%  
-  mutate(race = factor(race, levels = rev(unique(race))))
+  arrange(desc(n)) %>% mutate(race = factor(race, levels = rev(unique(race))))
 
 ggplot(data = raceinfo, aes(x = n,y = race)) + 
   geom_barh(stat="identity", aes(fill = n)) +
@@ -150,11 +143,11 @@ ggplot(data = raceinfo, aes(x = n,y = race)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
 
-Raceinfo <- fatalEncounters %>% group_by(Race.with.imputations) %>% summarise(n = n()) %>% 
+raceinfo <- fatalEncounters %>% group_by(Race.with.imputations) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  
   mutate(Race.with.imputations = factor(Race.with.imputations, levels = rev(unique(Race.with.imputations))))
 
-ggplot(data = Raceinfo, aes(x = n,y = Race.with.imputations)) + 
+ggplot(data = raceinfo, aes(x = n,y = Race.with.imputations)) + 
   geom_barh(stat="identity", aes(fill = n)) +
   ggtitle("FatalEncounters Raceinfo")+
   theme_minimal(base_size = 13) +
@@ -162,6 +155,9 @@ ggplot(data = Raceinfo, aes(x = n,y = Race.with.imputations)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
+
+ggboxplot(WahsingtonPost, x = "race", y = "age") +
+  ggtitle("WahsingtonPost Raceinfo and age comparaison")
 ```
 
 On serait vite tenter de déterminé une forme de descrimination ici cependant, il faut préciser que nous ne connaisons pas la répartitition des popultations sur le teritoire americain. Il est probable que les European-Americain/white represente une population majeur sur le téritoire americain toutefois, sans information suplementaire nous ne pouvons pas en déterminé plus.
@@ -211,6 +207,7 @@ print(result.median)
 print("fatalEncounters median")
 result.median <-  median(fatalEncounters$Age,na.rm = TRUE)
 print(result.median)
+
 
 estimate_mode <- function(x) {
   d <- density(x,na.rm = TRUE)
@@ -274,6 +271,144 @@ ggplot(stateinfo, aes(x = n, y = State)) +
 
 ```
 
+
+```{r}
+
+fleeinfo <- WahsingtonPost %>% group_by(flee) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%
+  mutate(flee = factor(flee, levels = rev(unique(flee))))
+
+ggplot(data = fleeinfo, aes(x = n, y = flee)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost fleeinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+fleeinfo <- fatalEncounters %>% group_by(Fleeing.Not.fleeing) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%
+  mutate(Fleeing.Not.fleeing = factor(Fleeing.Not.fleeing, levels = rev(unique(Fleeing.Not.fleeing))))
+
+ggplot(data = fleeinfo, aes(x = n, y = Fleeing.Not.fleeing)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("fatalEncounters fleeinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+```
+
+```{r}
+
+ggplot(data = TaxPolicyCenter, aes(x = police ,y = regionsandstates)) + 
+  geom_barh(stat="identity", aes(fill = police)) +
+  ggtitle("TaxPolicyCenter regionsandstates Finance")+
+  theme_minimal(base_size = 8) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "green") +
+  labs(y = "regionsandstates", x = "Finance")
+
+stateinfo <- WahsingtonPost %>% group_by(state) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(state = factor(state, levels = rev(unique(state))))
+
+ggplot(stateinfo, aes(x = n, y = state)) +
+  ggtitle("WahsingtonPost stateinfo")+
+  geom_barh(stat="identity", aes(fill = n)) +
+  geom_text(aes(x = 17, y = state, label=as.character(state)), color="white", size=4) +
+  labs(y = NULL, x = "Number of deaths") +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  theme_minimal(base_size = 13) +
+  theme(axis.text.y=element_blank()) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0))
+
+stateinfo <- policeDeaths %>% group_by(state) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(state = factor(state, levels = rev(unique(state))))
+
+ggplot(data = stateinfo, aes(x = n,y = state)) + 
+  ggtitle("policeDeaths stateinfo")+
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+print("TaxPolicyCenter mean")
+result.mean <-  mean(TaxPolicyCenter$police,na.rm = TRUE)
+print(result.mean)
+# poids des souris
+# test de student pour échantillon unique
+res<-t.test(TaxPolicyCenter$police, mu=TaxPolicyCenter$police[TaxPolicyCenter$regionsandstates == "California"])
+print("t test for California")
+print(res)
+
+print("TaxPolicyCenter median")
+result.median <-  median(TaxPolicyCenter$police,na.rm = TRUE)
+print(result.median)
+
+
+estimate_mode <- function(x) {
+  d <- density(x,na.rm = TRUE)
+  d$x[which.max(d$y)]
+}
+
+print("TaxPolicyCenter Mode")
+result.mode <-  estimate_mode(TaxPolicyCenter$police)
+print(result.mode)
+
+
+
+```
+```{r}
+yearinfo <- policeDeaths %>% group_by(year) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%  top_n(15) %>% 
+  mutate(year = factor(year, levels = rev(unique(year))))
+
+ggplot(data = yearinfo, aes(x = n,y = year)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+yearinfo <- policeDeaths %>% group_by(year) %>% summarise(n = n()) %>% 
+  arrange(desc(year)) %>% 
+  mutate(year = factor(year, levels = rev(unique(year))))
+
+ggplot(data = yearinfo[0:20,], aes(x = n,y = year)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+```
+```{r}
+
+causeinfo <- policeDeaths %>% group_by(cause_short) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%  
+  mutate(cause_short = factor(cause_short, levels = rev(unique(cause_short))))
+
+ggplot(data = causeinfo, aes(x = n,y = cause_short)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+```
 
 ```{r}
 
