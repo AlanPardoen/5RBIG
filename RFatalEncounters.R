@@ -8,7 +8,6 @@ library(ggalt)
 
 fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
 
-
 Raceinfo <- fatalEncounters %>% group_by(Race) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  
   mutate(Race = factor(Race, levels = rev(unique(Race))))
@@ -20,8 +19,6 @@ ggplot(data = Raceinfo, aes(x = n,y = Race)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
-
-
 
 Raceinfo <- fatalEncounters %>% group_by(Race.with.imputations) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  
@@ -84,7 +81,6 @@ ggplot(data = ageinfo, aes(x = n,y = Age)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
 
-
 genreinfos <- fatalEncounters %>% group_by(Gender) %>% summarise(n = n()) %>% 
   arrange(desc(Gender)) %>% top_n(25) %>% 
   mutate(Gender = factor(Gender, levels = rev(unique(Gender))))
@@ -96,6 +92,8 @@ ggplot(data = genreinfos, aes(x = n,y = Gender)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
+
+
 
 
 

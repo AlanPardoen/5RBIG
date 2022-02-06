@@ -66,6 +66,9 @@ ggplot(stateinfo, aes(x = n, y = state)) +
   theme(legend.position = "none") +
   scale_x_continuous(expand=c(0,0))
 
+mean = mean(stateinfo$n)
+print(mean)
+
 
 armedinfo <- WahsingtonPost %>% group_by(armed) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>% top_n(10) %>% 
@@ -90,5 +93,38 @@ ggplot(data = fleeinfo, aes(x = n, y = flee)) +
   scale_x_continuous(expand=c(0,0)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
+
+
+ageinfo <- WahsingtonPost %>% group_by(Age) %>% summarise(n = n()) %>% 
+  arrange(Age) %>% top_n(25) %>% 
+  mutate(Age = factor(Age, levels = rev(unique(Age))))
+
+ggplot(data = ageinfo, aes(x = n,y = Age)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+mean = mean(WahsingtonPost$age)
+print(mean)
+
+
+illessinfo <- WahsingtonPost %>% group_by(signs_of_mental_illness) %>% summarise(n = n()) %>% 
+  arrange(signs_of_mental_illness) %>% top_n(25) %>% 
+  mutate(signs_of_mental_illness = factor(signs_of_mental_illness, levels = rev(unique(signs_of_mental_illness))))
+
+ggplot(data = illessinfo, aes(x = n,y = signs_of_mental_illness)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+
+
 
 

@@ -1,0 +1,162 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+On récupére l'ensemble des donnés 
+```{r}
+library(devtools)
+library(flexdashboard)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(ggstance)
+library(ggalt)
+library(readxl)
+
+fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
+WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
+WahsingtonPost$date <- ymd(WahsingtonPost$date)
+policeDeaths <- read.csv("PoliceDeaths.csv", header=TRUE, sep=",")
+
+TaxPolicyCenter <- read_excel("TaxPolicyCenter.xls" )
+TaxPolicyCenter <- na.omit(TaxPolicyCenter)
+names(TaxPolicyCenter) <- c('regionsandstates', 'total','intergovernmental','total2', 'Elementaryandsecondaryeducation', 'Highereducation', 'Publicwelfare', 
+                       'healthandhospital', 'highways', 'police', 'all other', 'ExhibitpersonalIncome[1](millions)')
+```
+
+
+
+Pour commencer quelque données propre à chacunes des tables 
+
+Le nombre de civils tués durant un intervention présentant des troubles menteaux
+```{r}
+illessinfo <- WahsingtonPost %>% group_by(signs_of_mental_illness) %>% summarise(n = n()) %>% 
+  arrange(signs_of_mental_illness) %>% 
+  mutate(signs_of_mental_illness = factor(signs_of_mental_illness, levels = rev(unique(signs_of_mental_illness))))
+
+ggplot(data = illessinfo, aes(x = n,y = signs_of_mental_illness)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost illessinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = "Sign of illness", x = "Number of deaths")
+```
+
+comparont maintenant les deux bases concernant les civils a savoir fatalencouter et wahsingtonPost sur les niveaux de danger, les armes et les delits de fuites 
+
+Commençont par le niveau d'armes:
+
+```{r}
+armedinfo <- WahsingtonPost %>% group_by(armed) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>% top_n(15) %>% 
+  mutate(armed = factor(armed, levels = rev(unique(armed))))
+
+ggplot(data = armedinfo, aes(x = n, y = armed)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost armedinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+armedinfo <- fatalEncounters %>% group_by(Armed.Unarmed) %>% summarise(n = n()) %>% 
+  arrange(desc(n))  %>% 
+  mutate(Armed.Unarmed = factor(Armed.Unarmed, levels = rev(unique(Armed.Unarmed))))
+
+ggplot(data = armedinfo, aes(x = n, y = Armed.Unarmed)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("FatalEncounters armedinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+```
+Continuont sur le comportement et niveau de menace:
+```{r}
+threatinfo <- WahsingtonPost %>% group_by(threat_level) %>% summarise(n = n()) %>% 
+  arrange(desc(n))  %>% 
+  mutate(armed = factor(threat_level, levels = rev(unique(threat_level))))
+
+ggplot(data = threatinfo, aes(x = n, y = threat_level)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost threatinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+
+threatinfo <- fatalEncounters %>% group_by(Aggressive.physical.movement) %>% summarise(n = n()) %>% 
+  arrange(desc(n))  %>% 
+  mutate(Aggressive.physical.movement = factor(Aggressive.physical.movement, levels = rev(unique(Aggressive.physical.movement))))
+
+ggplot(data = threatinfo, aes(x = n, y = Aggressive.physical.movement)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("FatalEncounters threatinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+```
+
+On peut constater que donné de washingtonpost sont remplis beaucoup plus assidûment, de nombreuses colones de fatalEncouter sont réguliérement pas remplis ou non référencié. Peut-être que ces variations ne sont pas présentent sur tout les données on va donc étudié des donnés qui sont plus plus basée sur les personne et moins sur la confrontation.
+
+
+Comparont déja l'origine ethnique de chacune des personnes décédés
+```{r}
+raceinfo <- WahsingtonPost %>% group_by(race) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%  
+  mutate(race = factor(race, levels = rev(unique(race))))
+
+ggplot(data = raceinfo, aes(x = n,y = race)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("WahsingtonPost Raceinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+
+Raceinfo <- fatalEncounters %>% group_by(Race) %>% summarise(n = n()) %>% 
+  arrange(desc(n)) %>%  
+  mutate(Race = factor(Race, levels = rev(unique(Race))))
+
+ggplot(data = Raceinfo, aes(x = n,y = Race)) + 
+  geom_barh(stat="identity", aes(fill = n)) +
+  ggtitle("FatalEncounters Raceinfo")+
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none") +
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
+  labs(y = NULL, x = "Number of deaths")
+```
+
+On serait vite tenter de déterminé une forme de descrimination ici cependant, il faut préciser que nous ne connaisons pas la répartitition des popultations sur le teritoire americain. Il est probable que les European-Americain/white represente une population majeur sur le téritoire americain cependant, sans information suplementaire nous ne pouvons pas en déterminé plus. 
+
+```{r}
+
+```
+
+
+
