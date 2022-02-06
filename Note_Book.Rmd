@@ -14,8 +14,8 @@ When you save the notebook, an HTML file containing the code and output will be 
 
 The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
 
+Pour ce projet, il va nous falloir un jeu de données, nous pouvons le récupérer en exécutant ces commandes :
 
-On récupére l'ensemble des donnés 
 ```{r}
 library(devtools)
 library(flexdashboard)
@@ -25,6 +25,9 @@ library(ggplot2)
 library(ggstance)
 library(ggalt)
 library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
 
 fatalEncounters <- read.csv("FatalEncounters.csv", header=TRUE, sep=",")
 WahsingtonPost <- read.csv("WahsingtonPostDatabase.csv", header=TRUE, sep=",")
@@ -41,7 +44,11 @@ TaxPolicyCenter$police <- as.numeric(as.character(TaxPolicyCenter$police))
 
 
 
-Le nombre de civils tués durant un intervention présentant des troubles menteaux
+Afin de commencer notre travail d’analyse, puis d’interprétation, nous devons commencer par tirer les informations pertinentes de chaque source.
+
+commençons par le nombre de civils présentant des troubles mentaux/psychiques tués lors de l’intervention des forces de l’ordre.
+nous analyserons donc la source du washington post et celle du fatal encounters.
+
 ```{r}
 illessinfo <- WahsingtonPost %>% group_by(signs_of_mental_illness) %>% summarise(n = n()) %>% 
   arrange(signs_of_mental_illness) %>% 
@@ -63,9 +70,14 @@ ggplot(illessinfo, aes(x="", y=n, fill=Foreknowledge.of.mental.illness..INTERNAL
   coord_polar("y", start=0)
 ```
 
-comparont maintenant les deux bases concernant les civils a savoir fatalencouter et wahsingtonPost sur les niveaux de danger, les armes et les delits de fuites 
+Ce graphique nous permet de mettre en évidence qu’environ 22% des victimes sont sujets a ce genre de troubles, pouvant causer une attitude agressive de la part de la victime ou une réponse inadaptée de la part des forces de l’ordre.
 
-Commençont par le niveau d'armes:
+
+Après avoir vu les troubles mentaux, nous allons maintenant nous porter sur les actions prises par les civiles abattus, ainsi que leur état de dangerosité (entendez par cela l’utilisation ou non d’armes).
+pour atteindre cet objectif, nous avons deux jeux de données à notre disposition : celui provenant de fatals encounters (FE), et celui du Washington post (WP).
+
+Nous allons d’abord nous intéresser à la dangerosité des civils. Pour cela nous allons voir si ces derniers étaient armés ou non, grâce à nos deux jeux de données.
+
 
 ```{r}
 armedinfo <- WahsingtonPost %>% group_by(armed) %>% summarise(n = n()) %>% 
@@ -96,7 +108,12 @@ ggplot(data = armedinfo, aes(x = n, y = Armed.Unarmed)) +
   labs(y = NULL, x = "Number of deaths")
 
 ```
-Continuont sur le comportement et niveau de menace:
+Après l’analyse du jeu de données de FE, nous pouvons commencer à emmètre des suspicions quand a la véracité (trop de variables inconnues, en rouge sur le tableu) et à la propreté du jeu (analyse auprès de la source : https://fatalencounters.org/ .
+
+nous allons donc plus nous attarder sur le jeu du WP. Celui-ci nous montre que la très grande majorité des victimes civiles (si ce n’est la quasi-totalité) étaient armées (armes à feu, blanches, véhicules béliers, contondantes…)
+
+Après cette analyse, nous allons désormais nous porter sur les action prises par les civils :
+
 ```{r}
 threatinfo <- WahsingtonPost %>% group_by(threat_level) %>% summarise(n = n()) %>% 
   arrange(desc(n))  %>% 
@@ -126,10 +143,12 @@ ggplot(data = threatinfo, aes(x = n, y = Aggressive.physical.movement)) +
   labs(y = NULL, x = "Number of deaths")
 ```
 
-On peut constater que donné de washingtonpost sont remplis beaucoup plus assidûment, de nombreuses colones de fatalEncouter sont réguliérement pas remplis ou non référencié. Peut-être que ces variations ne sont pas présentent sur tout les données on va donc étudié des donnés qui sont plus plus basée sur les personne et moins sur la confrontation.
+Après cette seconde analyse, nous pouvons confirmer nos suspicions quand à la source de FE : la majorité des informations sont non remplies, et la deuxième plus grande occurrence est « none », montrant le manque d’information. Nous allons par conséquent garder cette source dans nos comparaisons, mais nous allons arrêter d’analyser et de tirer des conclusions grâce à cette source si une trop grande partie des informations sont non déterminées.
 
+quant à celle du WP, même si elles sont plus généralisées, nous voyons qu’environ 2/3 des victimes ont présenté un comportement très agressif (attaque) face aux forces de l’ordre. Nous avons bien entendu des résultats inconnus, mais dans une proportion bien moindre par rapport à FE, et le reste des données (environ 1/3) présentent des comportements autres que ceux apparentés à de l’agressivité (fuite, coopération…).
 
-Comparont déja l'origine ethnique de chacune des personnes décédés
+Désormais nous allons nous intéresser à l’origine ethnique de chaque victime civile :
+
 ```{r}
 raceinfo <- WahsingtonPost %>% group_by(race) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>% mutate(race = factor(race, levels = rev(unique(race))))
@@ -160,9 +179,9 @@ ggboxplot(WahsingtonPost, x = "race", y = "age") +
   ggtitle("WahsingtonPost Raceinfo and age comparaison")
 ```
 
-On serait vite tenter de déterminé une forme de descrimination ici cependant, il faut préciser que nous ne connaisons pas la répartitition des popultations sur le teritoire americain. Il est probable que les European-Americain/white represente une population majeur sur le téritoire americain toutefois, sans information suplementaire nous ne pouvons pas en déterminé plus.
+Les jeux de données étant pour une fois assez similaires dans leurs résultats, nous y voyons que la répartition des ethnies des victimes est assez semblable. Nous voyons aussi grace au boxplot l'etendue d'age, ainsi que l'age moyen par ethnie. Même si ce genre de recherche est autorisée aux états unis d’Amériques, afin d’éviter toute controverse, nous n’allons pas exploiter cette donnée.
 
-comparont les age de chacun des database et essayon de trouver un tranche "cible"
+Maintenant attardons nous sur l’âge moyen des victimes, ou du moins la tranche d’âge.
 
 ```{r}
 ageinfo <- WahsingtonPost %>% group_by(age) %>% summarise(n = n()) %>% 
@@ -224,6 +243,9 @@ result.mode <-  estimate_mode(fatalEncounters$Age)
 print(result.mode)
 
 ```
+Nous pouvons constater que la moyenne, la médiane et le mode renvoyés par les deux sources sont à peu près identiques : respectivement 37, 35 et 31 pour WP et 35, 33 et 24 pour FE.
+nous pouvons l’expliquer en partie par le fait que les personnes jeunes ont tendance à être plus agressives et se sentir au-dessus de la loi que des personnes plus âgées et plus calmes.
+
 
 ```{r}
 WahsingtonPost$date <- ymd(WahsingtonPost$date)
@@ -237,6 +259,7 @@ ggplot(data = WahsingtonPost, aes(x = date)) +
 
 
 ```
+Ce graphique nous montre un nombre contant des victimes civiles par années (à peu près 1200 morts par an)
 ```{r}
 stateinfo <- WahsingtonPost %>% group_by(state) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>% top_n(15) %>% 
@@ -270,7 +293,7 @@ ggplot(stateinfo, aes(x = n, y = State)) +
 
 
 ```
-
+Maintenant nous allons aborder le nombre de victimes par état. Les deux sources nous montrent le même podium : Californie, Texas puis Floride. Nous pouvons donc confirmer la véracité de ces informations 
 
 ```{r}
 
@@ -302,7 +325,7 @@ ggplot(data = fleeinfo, aes(x = n, y = Fleeing.Not.fleeing)) +
 
 
 ```
-
+ces graphiques nous montrent le moyen de locomotion utilisé par les victimes lors de leur fuite (ou non)
 ```{r}
 
 ggplot(data = TaxPolicyCenter, aes(x = police ,y = regionsandstates)) + 
@@ -368,6 +391,8 @@ print(result.mode)
 
 
 ```
+ces differents graphiques nous montrent le budget alloué par les differents etats americains à leurs forces de l'ordre, en plus des deces des fonctionnaires.
+les etats du texas, de californie et de new york ressortent bien dans les pertes policieres, et mis en correlation avec les budgets, nous y voyons que les budgets californiens et texans sont ddans la moyenne comparés aux autres etats, mais nous observons l'un des plus gros budget budget alloué par l'etat de new york (sans compter le district of columbia). Ces deux derniers sont par ailleurs absents du top 15 des états les plus mortels, coencidence ? 
 ```{r}
 yearinfo <- policeDeaths %>% group_by(year) %>% summarise(n = n()) %>% 
   arrange(desc(n)) %>%  top_n(15) %>% 
@@ -393,6 +418,7 @@ ggplot(data = yearinfo[0:20,], aes(x = n,y = year)) +
   scale_fill_gradient(low = "dodgerblue", high = "firebrick1") +
   labs(y = NULL, x = "Number of deaths")
 ```
+ces graphiques nous montrent d'une part les années les plus meurtrieres pour les forces de polices (periodes de troubles comme la prohibition ou la fin de la guerre du vietnam) ainsi que le personel tués pendant son devoir lors des dernieres années.
 ```{r}
 
 causeinfo <- policeDeaths %>% group_by(cause_short) %>% summarise(n = n()) %>% 
@@ -410,7 +436,15 @@ ggplot(data = causeinfo, aes(x = n,y = cause_short)) +
 
 ```
 
-```{r}
+ce dernier graphique nous montre les causes du deces des forces de l'ordre. bizzarement, beaucoup de victimes sont causées par des armes a feu, rien d'anormal dans le pays de l'oncle sam (tout comme pour les civils d'ailleur).
 
-```
 
+Apres cette étude des differentes sources (washington post, fatal encounters, police deaths et tax policy)nous nous posons cette question: 
+
+y a t'il un rapport entre les fonds disponibles pour la police dans un etat, et le professionalisme des forces de l'ordre dans ce dit etat?
+
+en recoupant toutes les analyses et informations que nous avons pu tirer des datasets, nous pouvons confirmer qu'un lien de cause a effet existe entre le budget et le professionalisme.
+
+en effet, dans les etats avec moins de budget, nous pouvons observer une tendance elevée du nombre de victimes civiles et policieres (californie, texas)
+
+nous pouvons alors commencer à rajouter la part de population de chaque etat, la part de crimes et delits non mortels aussi afin de voir la proportion entre la population par etat et les delits/crimes mortels ou non, enfin nous pouvons aussi expandre notre travail en y ajoutant les bords politiques des gouverneurs, county executives ("maires" dune contrée) et les maires de villes afin de voir la proportion du budget aloué aux forces de l'ordre en fonction du parti, et quelles sont les consequences sur le professionalisme des policiers.
